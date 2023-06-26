@@ -3,21 +3,18 @@ authors = ["Bernard van Niekerk <bernard.van.niekerk@icloud.com>"]
 description = "Serialize Pydantic models and non-JSONable types into a JSONable variable."
 name = "jsonablr"
 readme = "README.md"
+repository = "https://github.com/frizzy/jsonablr.git"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
 pydantic = "^1.10"
 python = "^3.9"
 
-[tool.poetry.group.test.dependencies]
-pytest = "^7.4.0"
-
 [tool.poetry.group.test]
 optional = true
 
-[tool.poetry.group.dev.dependencies]
-autopep8 = "^2.0.2"
-rich = "^13.4.2"
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
