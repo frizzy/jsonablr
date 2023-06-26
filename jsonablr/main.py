@@ -174,14 +174,16 @@ class JsonAblr:
             allowed_keys -= set(self.options.exclude)
 
         encoder = self.__class__(
-            options=Options.parse_obj(self.options.dict(include={
-                'by_alias',
-                'exclude_unset',
-                'exclude_none',
-                'exclude_defaults',
-                'sqlalchemy_safe',
-                'preserve_set'
-            }))
+            options=Options.parse_obj(self.options.dict(
+                include={
+                    'by_alias',
+                    'exclude_unset',
+                    'exclude_none',
+                    'exclude_defaults',
+                    'sqlalchemy_safe',
+                    'preserve_set'
+                })),
+            encoders=self.encoders
         )
 
         for key, value in obj.items():

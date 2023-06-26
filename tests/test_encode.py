@@ -19,6 +19,14 @@ def test_datetime():
     assert encode(date) == '2020-01-01T12:30:00.000Z'
 
 
+def test_datetime_in_dict():
+
+    data = {
+        'when': datetime(2020, 1, 1, 13, 30, 0)
+    }
+    assert encode(data) == {'when': '2020-01-01T12:30:00.000Z'}
+
+
 def test_preserve_set():
 
     assert encode(set([1, 2, 3]), preserve_set=True) == {1, 2, 3}
