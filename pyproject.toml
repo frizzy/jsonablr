@@ -4,7 +4,7 @@ description = "Serialize Pydantic models and non-JSONable types into a JSONable 
 name = "jsonablr"
 readme = "README.md"
 repository = "https://github.com/frizzy/jsonablr.git"
-version = "0.1.0"
+version = "1.0.0"
 
 [tool.poetry.dependencies]
 pydantic = "^1.10"
