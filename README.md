@@ -43,7 +43,7 @@ print(encode(my_date))
 ```python
 from typing import Set
 from datetime import datetime
-from jsonablr import JsonAblr, Config
+from jsonablr import JsonAblr
 from pydantic import BaseModel
 
 class DynamoDbItem(BaseModel):
@@ -53,12 +53,10 @@ class DynamoDbItem(BaseModel):
     when: datetime
 
 encoder = JsonAblr(
-    config=Config(
-        preserve_set=True
-    ),
     encoders={
         datetime: lambda x: x.isoformat(sep=' ', timespec='seconds')
-    }
+    },
+    preserve_set=True
 )
 
 item = DynamoDbItem(
