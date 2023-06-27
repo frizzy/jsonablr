@@ -1,7 +1,7 @@
 """
 Test encode.
 """
-from jsonablr import encode
+from jsonablr import encode, encode_output
 from datetime import datetime
 
 
@@ -76,3 +76,12 @@ def test_pydantic_model_preserve_set():
     assert encode(item, preserve_set=True) == {
         'a': 1, 'b': 'test', 'c': {1, 2, 3, 4}, 'd': {'z': {1, 2, 3, 4}}
     }
+
+
+def test_decorator():
+
+    @encode_output(encoders={datetime: lambda obj: obj.isoformat(sep=' ', timespec='seconds')})
+    def my_func():
+        return datetime(2020, 1, 1, 13, 30, 0)
+
+    assert my_func() == '2020-01-01 13:30:00'

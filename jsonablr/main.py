@@ -1,6 +1,7 @@
 """
 Encoders
 """
+from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 from datetime import datetime, date, timezone
 import dataclasses
@@ -40,12 +41,27 @@ class Options(BaseModel):
     preserve_set: bool = False
 
 
-def encode(data: Any, **kwargs) -> dict:
+def encode(data: Any, **options) -> dict:
     encoder = JsonAblr(
-        encoders=kwargs.pop('encoders', {}),
-        **Options.parse_obj(kwargs).dict()
+        encoders=options.pop('encoders', {}),
+        **Options.parse_obj(options).dict()
     )
     return encoder(data)
+
+
+def encode_output(func=None, **options):
+    encoder = JsonAblr(
+        encoders=options.pop('encoders', {}),
+        **Options.parse_obj(options).dict()
+    )
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return encoder.encode(func(*args, **kwargs))
+        return wrapper
+
+    return decorator if func is None else decorator(func)
 
 
 encoder_map:  Dict[Callable[[Any], Any], Tuple[Any, ...]] = {}

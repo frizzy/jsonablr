@@ -1,6 +1,6 @@
 """
 JSONablr
 """
-from .main import JsonAblr, encode
+from .main import JsonAblr, encode, encode_output
 
-__all__ = ['JsonAblr', 'encode']
+__all__ = ['JsonAblr', 'encode', 'encode_output']
