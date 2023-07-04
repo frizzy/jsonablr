@@ -4,6 +4,8 @@ JsonAblr is a Python library that allows you to encode variables into a format t
 
 This was heavily inspired by FastAPI's `jsonable_encoder`.
 
+- JsonAblr now requires Pydantic 2.0 or above. If you are using Pydantic 1.x, please use JsonAblr 1.1.1.
+
 ## Features
 
 - Encode variables into a JSON-like format

@@ -2,14 +2,13 @@
 Encoders
 """
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 from datetime import datetime, date, timezone
 import dataclasses
 from enum import Enum
 from pathlib import PurePath
 from types import GeneratorType
-from pydantic import BaseModel
-from pydantic.json import ENCODERS_BY_TYPE
+from pydantic import BaseModel, create_model
 
 
 def datetime_encoder(dateval: datetime) -> str:
@@ -44,7 +43,7 @@ class Options(BaseModel):
 def encode(data: Any, **options) -> dict:
     encoder = JsonAblr(
         encoders=options.pop('encoders', {}),
-        **Options.parse_obj(options).dict()
+        **Options.model_validate(options).model_dump()
     )
     return encoder(data)
 
@@ -52,7 +51,7 @@ def encode(data: Any, **options) -> dict:
 def encode_output(func=None, **options):
     encoder = JsonAblr(
         encoders=options.pop('encoders', {}),
-        **Options.parse_obj(options).dict()
+        **Options.model_validate(options).model_dump()
     )
 
     def decorator(func):
@@ -64,12 +63,6 @@ def encode_output(func=None, **options):
     return decorator if func is None else decorator(func)
 
 
-encoder_map:  Dict[Callable[[Any], Any], Tuple[Any, ...]] = {}
-for type_, encoder in ENCODERS_BY_TYPE.items():
-    encoder_map.setdefault(encoder, tuple())
-    encoder_map[encoder] += (type_,)
-
-
 class JsonAblr:
 
     def __init__(self, encoders: Optional[Dict[Any, Callable]] = None, **options) -> None:
@@ -77,14 +70,14 @@ class JsonAblr:
             **default_encoders,
             **(encoders or {})
         }
-        self._options = Options.parse_obj(options)
+        self._options = Options.model_validate(options)
         self._override_options = None
 
     @property
     def options(self) -> Options:
-        return Options.parse_obj({
-            **self._options.dict(),
-            **(self._override_options.dict() if self._override_options else {})
+        return Options.model_validate({
+            **self._options.model_dump(),
+            **(self._override_options.model_dump() if self._override_options else {})
         })
 
     def __call__(self, obj: Any, **options) -> Any:
@@ -92,7 +85,7 @@ class JsonAblr:
 
     def encode(self, obj: Any, **options) -> Any:
         if options:
-            self._override_options = Options.parse_obj(options)
+            self._override_options = Options.model_validate(options)
         encoded = self._encode(obj)
         self._override_options = None
         return encoded
@@ -127,16 +120,9 @@ class JsonAblr:
         if isinstance(obj, (list, set, frozenset, GeneratorType, tuple)):
             return self.handle_list_type(obj)
 
-        encoder = ENCODERS_BY_TYPE.get(type(obj))
-        if encoder:
-            return encoder(obj)
-
-        for encoder, types in encoder_map.items():
-            if isinstance(obj, types):
-                return encoder(obj)
-
         try:
-            data = dict(obj)
+            ObjModel = create_model('ObjModel', obj=(type(obj), ...))
+            return ObjModel(obj=obj).model_dump(mode='json')['obj']
         except Exception as e:
             errors: List[Exception] = []
             errors.append(e)
@@ -160,7 +146,7 @@ class JsonAblr:
 
     def handle_pydantic_model(self, obj: BaseModel) -> dict:
 
-        obj_dict = obj.dict(**self.options.dict(include={
+        obj_dict = obj.model_dump(**self.options.model_dump(include={
             'include',
             'exclude',
             'by_alias',
@@ -169,14 +155,9 @@ class JsonAblr:
             'exclude_defaults'
         }))
 
-        json_encoders = getattr(obj.__config__, 'json_encoders', {})
-
-        if '__root__' in obj_dict:
-            obj_dict = obj_dict['__root__']
-
         encoder = self.__class__(
-            encoders={**json_encoders, **(self.encoders or {})},
-            **self.options.dict(include={
+            encoders=self.encoders,
+            **self.options.model_dump(include={
                 'exclude_none',
                 'exclude_defaults',
                 'sqlalchemy_safe',
@@ -201,7 +182,7 @@ class JsonAblr:
 
         encoder = self.__class__(
             self.encoders,
-            **self.options.dict(
+            **self.options.model_dump(
                 include={
                     'by_alias',
                     'exclude_unset',
