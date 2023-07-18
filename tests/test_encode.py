@@ -2,7 +2,7 @@
 Test encode.
 """
 from jsonablr import encode, encode_output
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, AwareDatetime, RootModel
 
 
@@ -16,16 +16,16 @@ def test_custom_encoder():
 
 def test_datetime():
 
-    date = datetime(2020, 1, 1, 13, 30, 0)
-    assert encode(date) == '2020-01-01T12:30:00.000Z'
+    date = datetime(2020, 1, 1, 13, 30, 0).replace(tzinfo=timezone.utc)
+    assert encode(date) == '2020-01-01T13:30:00.000Z'
 
 
 def test_datetime_in_dict():
 
     data = {
-        'when': datetime(2020, 1, 1, 13, 30, 0)
+        'when': datetime(2020, 1, 1, 14, 30, 0).replace(tzinfo=timezone.utc)
     }
-    assert encode(data) == {'when': '2020-01-01T12:30:00.000Z'}
+    assert encode(data) == {'when': '2020-01-01T14:30:00.000Z'}
 
 
 def test_preserve_set():
